@@ -6,7 +6,7 @@ let userName = '';
 let dos = '';
 
 // eslint-disable-next-line no-undef
-firebase.auth().onAuthStateChanged(function(user) {
+firebase.auth().onAuthStateChanged(function (user) {
 	if (user) {
 		userId = user.uid;
 		userName = user.displayName;
@@ -45,13 +45,13 @@ function addDoc(word) {
 		.then(() => {
 			loading.style.display = 'none';
 		})
-		.catch(function(error) {
+		.catch(function (error) {
 			console.error('Error writing document: ', error);
 		});
 }
 
 // eslint-disable-next-line no-unused-vars
-function getSingleDocDetails(docId){
+function getSingleDocDetails(docId) {
 	// eslint-disable-next-line no-undef
 	firebase
 		.firestore()
@@ -66,29 +66,29 @@ function getSingleDocDetails(docId){
 			} else {
 				console.log('No such document!');
 			}
-		}).catch(function(error) {
+		}).catch(function (error) {
 			console.log('Error getting document:', error);
 		});
 }
 
-var delay = (function(){
+var delay = (function () {
 	var timer = 0;
-	return function(callback, ms){
-		clearTimeout (timer);
+	return function (callback, ms) {
+		clearTimeout(timer);
 		timer = setTimeout(callback, ms);
 	};
 })();
 
-function init(){
+function init() {
 	const token = localStorage.getItem('token');
-	if(!token){
+	if (!token) {
 		// eslint-disable-next-line no-undef
 		const docId = firebase.firestore().collection('docs').doc(userId).collection('documents').doc().id;
 		localStorage.setItem('token', docId);
-	}else{
-		delay(function(){
+	} else {
+		delay(function () {
 			getSingleDocDetails(token);
-		}, 1000 );
+		}, 1000);
 	}
 }
 
@@ -98,12 +98,12 @@ window.addEventListener('load', function () {
 		const status = document.getElementById('status');
 		editor.addEventListener('input', e => {
 			dos = e.target.innerHTML;
-			delay(function(){
+			delay(function () {
 				addDoc(dos);
-			}, 1000 );
+			}, 1000);
 			console.log(dos);
 			if (navigator.onLine === true) {
-				const word =	localStorage.getItem('document');
+				const word = localStorage.getItem('document');
 				addDoc(word);
 				// loading.style.display = 'block';
 				status.innerHTML = 'online'.toUpperCase();

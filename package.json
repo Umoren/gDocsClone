@@ -19,8 +19,8 @@
   "bugs": {
     "url": "https://github.com/FayVik/GEditor.git/issues"
   },
-  "homepage": "https://github.com/FayVik/GEditor.git#readme",
-  "devDependencies": {
-    "eslint": "^7.13.0"
+  "homepage": "https://github.com/slightlynerd/text-editor#readme",
+  "dependencies": {
+    "firebase": "^9.14.0"
   }
 }

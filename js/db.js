@@ -1,3 +1,8 @@
+import { getAuth } from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-auth.js'
+import { getFirestore, collection, query, where, onSnapshot } from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-firestore.js'
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.14.0/firebase-app.js'
+import firebaseConfig from '../js/init-firebase.js'
+
 const newDoc = document.getElementById('createNewDoc');
 let userId = '';
 const docBook = document.getElementById('documents');
@@ -5,6 +10,9 @@ let holdDoc = [];
 const searchForm = document.getElementById('searchForm');
 const search = document.getElementById('search');
 localStorage.clear();
+const app = initializeApp(firebaseConfig);
+const Auth = getAuth();
+const firestore = getFirestore(app)
 
 
 /* When the user clicks on the button, 
@@ -29,7 +37,7 @@ window.onclick = function (event) {
 };
 
 // eslint-disable-next-line no-undef
-firebase.auth().onAuthStateChanged(function(user) {
+Auth.onAuthStateChanged(function (user) {
 	if (user) {
 		userId = user.uid;
 		getDocuments(userId);
@@ -38,29 +46,12 @@ firebase.auth().onAuthStateChanged(function(user) {
 	}
 });
 
-// get all documents
-function getDocuments(id) {
-	// eslint-disable-next-line no-undef
-	let db = firebase.firestore()
-		.collection('docs')
-		.doc(id)
-		.collection('documents');
-	db.get()
-		.then((querySnapshot) => {
-			querySnapshot.forEach(function(doc) {
-				let dcus = doc.data();
-				dcus.id = doc.id;
-				holdDoc.push(dcus);
-				showDoc();
-			});
-		});
-}
 
 // show all documents
 function showDoc() {
 	docBook.innerHTML = null;
-	for (let i = 0; i < holdDoc.length; i++){
-		let date = new Date( holdDoc[i].updated.toMillis());
+	for (let i = 0; i < holdDoc.length; i++) {
+		let date = new Date(holdDoc[i].updated.toMillis());
 		let hour = date.getHours();
 		let sec = date.getSeconds();
 		let minutes = date.getMinutes();
@@ -74,7 +65,7 @@ function showDoc() {
 		docBook.innerHTML += `
 			<div class="section group">
 				<div class="col span_1_of_3">
-					<p><a id="${holdDoc[i].id}" onclick="getSingleDocId(id)">
+					<p><a id="${holdDoc[i].id}" onclick="localStorage.setItem('token', id); window.location.href = '../editor.html';">
 						<i class="fa fa-book"></i> ${subString}  <i class="fa fa-users"></i>
 					</a></p>
 				</div>
@@ -83,7 +74,7 @@ function showDoc() {
 				</div>
 				<div class="col span_1_of_3">
 					<div class="dropdown">
-							<p> ${strTime} <i class="fa fa-ellipsis-v dropbtn" onclick="myFunction()" ></i></p>
+							<p> ${strTime} <i class="fa fa-ellipsis-v dropbtn" onclick="myFunction"></i></p>
 							<div id="myDropdown" class="dropdown-content">
 								<a href="#" target="_blank" >Delete Doc</a>
 								<a href="#">Open in New Tab</a>
@@ -95,30 +86,39 @@ function showDoc() {
 	}
 }
 
-// eslint-disable-next-line no-unused-vars
-function getSingleDocId(id){
-	console.log(id);
-	localStorage.setItem('token', id);
-	window.location.href = '../editor.html';
+// get all documents
+function getDocuments(id) {
+	const q = query(collection(firestore, 'docs', id, 'documents'));
+	const unsubscribe = onSnapshot(q, (querySnapshot) => {
+		querySnapshot.forEach((doc) => {
+			let dcus = doc.data();
+			dcus.id = doc.id;
+			holdDoc.push(dcus);
+			showDoc();
+		});
+	});
 }
+
+
+
+// eslint-disable-next-line no-unused-vars
+
 
 // search document function
 function searchDoc(content) {
 	// eslint-disable-next-line no-undef
-	let db = firebase.firestore()
-		.collection('docs')
-		.doc(userId)
+	let db = firestore.collection('docs').doc(`${userId}`)
 		.collection('documents')
 		.where('name', '==', content);
 	db.get()
-		.then(function(querySnapshot) {
+		.then(function (querySnapshot) {
 			querySnapshot.forEach(function (doc) {
 				holdDoc = [];
 				holdDoc.push(doc.data());
 				showDoc();
 			});
 		})
-		.catch(function(error) {
+		.catch(function (error) {
 			console.log('Error getting documents: ', error);
 		});
 }
